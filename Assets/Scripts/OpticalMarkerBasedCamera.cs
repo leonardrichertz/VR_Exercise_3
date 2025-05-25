@@ -1,9 +1,13 @@
+using TMPro;
 using UnityEngine;
 
 public class OpticalMarkerBasedCamera : MonoBehaviour
 {
     public Transform hmdTransform;     // The tracked object
     public LayerMask obstructionMask;  // Which layers block the view
+
+    [SerializeField] private TextMeshProUGUI angleText; // World-space UI reference
+
 
     public float? AngleToHMD { get; private set; }
 
@@ -31,7 +35,7 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         float angle = Vector3.Angle(transform.forward, toHMD);
         AngleToHMD = angle;
 
-        Debug.Log($"Angle to HMD: {angle:F2}°");
+        UpdateUIText($"Angle to HMD: {angle:F1}°");
     }
 
     private bool HasLineOfSight()
@@ -52,11 +56,21 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
     {
         if (AngleToHMD.HasValue)
         {
+            Debug.Log($"Angle to HMD: {AngleToHMD.Value:F1}°");
             GUI.Label(new Rect(10, 10, 300, 20), $"Angle to HMD: {AngleToHMD.Value:F1}°");
         }
         else
         {
+            Debug.Log("No line of sight to HMD");
             GUI.Label(new Rect(10, 10, 300, 20), "No line of sight to HMD");
+        }
+    }
+
+    private void UpdateUIText(string text)
+    {
+        if (angleText != null)
+        {
+            angleText.text = text;
         }
     }
 }

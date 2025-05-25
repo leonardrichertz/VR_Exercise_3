@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class IMU : MonoBehaviour
 {
@@ -11,9 +12,13 @@ public class IMU : MonoBehaviour
     // Winkelgeschwindigkeit = Änderung der Orientierung pro Zeit
     public Vector3 angularVelocity { get; private set; }      // deg/s
 
+    [SerializeField] private TextMeshProUGUI accelerationText;
+    [SerializeField] private TextMeshProUGUI rotationText;
+
     private Vector3 lastPosition;
     private Quaternion lastRotation;
     private Vector3 lastVelocity;
+
 
     void Start()
     {
@@ -42,6 +47,8 @@ public class IMU : MonoBehaviour
         angularVelocity = axis.normalized * angle / deltaTime;
 
         lastRotation = transform.rotation;
+
+        UpdateUIText();
     }
 
     void OnGUI()
@@ -62,5 +69,14 @@ public class IMU : MonoBehaviour
         y += labelHeight;
 
         GUI.Label(new Rect(x, y, labelWidth, labelHeight), $"Lage: {transform.rotation:F2}", style);
+    }
+
+    private void UpdateUIText()
+    {
+        if (accelerationText != null)
+            accelerationText.text = $"Acceleration: {linearAcceleration:F2}";
+
+        if (rotationText != null)
+            rotationText.text = $"Rotation: {angularVelocity:F2}";
     }
 }
