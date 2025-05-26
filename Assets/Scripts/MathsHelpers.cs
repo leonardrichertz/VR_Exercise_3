@@ -17,18 +17,17 @@ public class MathsHelpers : MonoBehaviour
             OUTPUT:
             vector in the direction of the hmd (from the camera), later d1 */
 
-        // Normalize w
-        Vector3 wNorm = w.normalized;
+        // Project w into the horizontal (XZ) plane
+        Vector3 wHorizontal = new Vector3(w.x, 0f, w.z);
 
-        // Pick any vector not parallel to w
-        Vector3 arbitrary = (Mathf.Abs(Vector3.Dot(wNorm, Vector3.up)) < 0.99f) ? Vector3.up : Vector3.right;
+        if (wHorizontal == Vector3.zero)
+            throw new System.Exception("Input vector has no horizontal component.");
 
-        // Get a perpendicular vector
-        Vector3 perp = Vector3.Cross(wNorm, arbitrary).normalized;
+        wHorizontal.Normalize();
 
-        // Rotate wNorm toward perp by angle
-        Quaternion rotation = Quaternion.AngleAxis(angleInDegrees, perp);
-        Vector3 v = rotation * wNorm;
+        // Rotate around the Y-axis (upward)
+        Quaternion rotation = Quaternion.AngleAxis(angleInDegrees, Vector3.up);
+        Vector3 v = rotation * wHorizontal;
 
         return v;
     }
