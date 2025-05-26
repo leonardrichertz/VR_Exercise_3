@@ -8,7 +8,7 @@ public class MathsHelpers : MonoBehaviour
         Debug.Log(GetLineIntersection(new Vector3(2, 2, 0), new Vector3(-1, -1, 0), new Vector3(0, 9, 3), new Vector3(0, -3, -1)));
     }
 
-    Vector3 GetVectorAtAngle(Vector3 w, float angleInDegrees)
+    public static Vector3 GetVectorAtAngle(Vector3 w, float angleInDegrees)
     {
         /*  INPUTS: 
             w: optical marker based camera's transform.forward
@@ -33,7 +33,7 @@ public class MathsHelpers : MonoBehaviour
         return v;
     }
     
-    Vector3 GetLineIntersection(Vector3 p1, Vector3 d1, Vector3 p2, Vector3 d2)
+    public static Vector3 GetLineIntersection(Vector3 p1, Vector3 d1, Vector3 p2, Vector3 d2)
     {
         /*  INPUTS: 
             p1: first optical marker based camera's transform.position

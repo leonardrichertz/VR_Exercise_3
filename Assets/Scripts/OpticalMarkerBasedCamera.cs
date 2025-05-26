@@ -10,6 +10,9 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
 
 
     public float? AngleToHMD { get; private set; }
+    public bool HasValidTracking => AngleToHMD.HasValue;
+    public Vector3 Position => transform.position;
+    public Vector3 Forward => transform.forward;
 
     void Update()
     {
@@ -18,13 +21,7 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
 
     private void UpdateAngleToHMD()
     {
-        if (hmdTransform == null)
-        {
-            AngleToHMD = null;
-            return;
-        }
-
-        if (!HasLineOfSight())
+        if (hmdTransform == null || !HasLineOfSight())
         {
             AngleToHMD = null;
             return;
