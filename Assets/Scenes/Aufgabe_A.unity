@@ -717,6 +717,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38fbaa8c5ac6b0444940c19d3c8d894d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  accelerometerNoise: 0.01
+  gyroNoise: 0.1
+  lowPassFilterFactor: 0.1
+  driftCorrectionStrength: 0.1
   accelerationText: {fileID: 1708575129}
   rotationText: {fileID: 44435515}
 --- !u!114 &441087514
@@ -1401,6 +1405,9 @@ MonoBehaviour:
   obstructionMask:
     serializedVersion: 2
     m_Bits: 8
+  horizontalFOV: 60
+  verticalFOV: 45
+  maxTrackingDistance: 20
   angleText: {fileID: 1764851440}
 --- !u!23 &1577687766
 MeshRenderer:
@@ -1954,6 +1961,9 @@ MonoBehaviour:
   obstructionMask:
     serializedVersion: 2
     m_Bits: 8
+  horizontalFOV: 60
+  verticalFOV: 45
+  maxTrackingDistance: 20
   angleText: {fileID: 748598782}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
