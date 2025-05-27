@@ -25,7 +25,7 @@ public class SensorFusionTracker : MonoBehaviour
     {
         var visibleCameras = cameras.Where(c => c.HasValidTracking).ToList();
 
-        if (visibleCameras.Count == 3)
+        if (visibleCameras.Count >= 2)
         {
             // Approximate triangulation using angles
             EstimatedPosition = TriangulatePosition(visibleCameras);
@@ -43,8 +43,8 @@ public class SensorFusionTracker : MonoBehaviour
             }
         }
 
-        // Optionally visualize estimation
-        hmdTransform.position = EstimatedPosition;
+        // Visualize estimation
+        trackedHMDVisual.position = EstimatedPosition;
     }
 
 
@@ -64,7 +64,7 @@ public class SensorFusionTracker : MonoBehaviour
 
         // Now use all rays to find closest intersection points
         if (rays.Count < 2)
-            return hmdTransform.position;
+            return trackedHMDVisual.position;
 
         Vector3 totalIntersection = Vector3.zero;
         int pairCount = 0;
@@ -79,7 +79,7 @@ public class SensorFusionTracker : MonoBehaviour
             }
         }
 
-        return pairCount > 0 ? totalIntersection / pairCount : hmdTransform.position;
+        return pairCount > 0 ? totalIntersection / pairCount : trackedHMDVisual.position;
     }
 
 }
