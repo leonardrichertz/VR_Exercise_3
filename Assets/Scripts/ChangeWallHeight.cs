@@ -3,10 +3,10 @@ using UnityEngine;
 public class ChangeWallHeight : MonoBehaviour
 {
     public GameObject wall;
-    private float scaleStep = 0.1f;
+    private float scaleStep = 0.2f;
 
     private float minHeight = 0f;
-    private float maxHeight = 4f;
+    private float maxHeight = 8f;
     private float newY;
     private void OnTriggerEnter(Collider other)
     {
