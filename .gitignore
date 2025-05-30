@@ -23,7 +23,6 @@ UserSettings/
 *.mdb
 
 # Unity auto-generated folders
-*.apk
 *.unitypackage
 
 # VS Code / JetBrains Rider
