@@ -3,80 +3,148 @@ using TMPro;
 
 public class IMU : MonoBehaviour
 {
-    // Beschleunigung = Änderung der Geschwindigkeit pro Zeit
-    public Vector3 linearAcceleration { get; private set; }   // m/s²
+    [Header("IMU Parameters")]
+    [SerializeField] private float accelerometerNoise = 0.01f;  // m/s²
+    [SerializeField] private float gyroNoise = 0.1f;           // degrees/s
+    [SerializeField] private float lowPassFilterFactor = 0.1f;  // 0 to 1, higher = more smoothing
+    [SerializeField] private float driftCorrectionStrength = 0.1f;  // 0 to 1, higher = faster correction
 
-    // Geschwindigkeit (velocity) in Weltkoordinaten
-    public Vector3 velocity { get; private set; }             // m/s
-
-    // Winkelgeschwindigkeit = Änderung der Orientierung pro Zeit
-    public Vector3 angularVelocity { get; private set; }      // deg/s
-
+    [Header("UI References")]
     [SerializeField] private TextMeshProUGUI accelerationText;
     [SerializeField] private TextMeshProUGUI rotationText;
 
+    // Public properties for external access
+    public Vector3 LinearAcceleration { get; private set; }   // m/s²
+    public Vector3 Velocity { get; private set; }             // m/s
+    public Vector3 AngularVelocity { get; private set; }      // deg/s
+    public Quaternion Orientation { get; private set; }       // Current orientation
+
+    // Private tracking variables
     private Vector3 lastPosition;
     private Quaternion lastRotation;
     private Vector3 lastVelocity;
-
+    private Vector3 filteredAcceleration;
+    private Vector3 filteredAngularVelocity;
+    private Vector3 gravityVector = Vector3.zero;
+    private bool isInitialized = false;
 
     void Start()
     {
+        InitializeSensors();
+    }
+
+    private void InitializeSensors()
+    {
         lastPosition = transform.position;
         lastRotation = transform.rotation;
+        Orientation = transform.rotation;
         lastVelocity = Vector3.zero;
+        filteredAcceleration = Vector3.zero;
+        filteredAngularVelocity = Vector3.zero;
+        gravityVector = Vector3.up * Physics.gravity.magnitude;
+        isInitialized = true;
     }
 
     void Update()
     {
+        if (!isInitialized)
+        {
+            InitializeSensors();
+            return;
+        }
+
         float deltaTime = Time.deltaTime;
         if (deltaTime <= 0f) return;
 
-        // Linear velocity and acceleration
-        Vector3 currentPosition = transform.position;
-        velocity = (currentPosition - lastPosition) / deltaTime;
-        linearAcceleration = (velocity - lastVelocity) / deltaTime;
-
-        lastPosition = currentPosition;
-        lastVelocity = velocity;
-
-        // Angular velocity (degrees per second)
-        Quaternion deltaRotation = transform.rotation * Quaternion.Inverse(lastRotation);
-        deltaRotation.ToAngleAxis(out float angle, out Vector3 axis);
-        if (angle > 180f) angle -= 360f; // Handle wrapping
-        angularVelocity = axis.normalized * angle / deltaTime;
-
-        lastRotation = transform.rotation;
-
+        UpdateLinearMotion(deltaTime);
+        UpdateAngularMotion(deltaTime);
+        ApplyDriftCorrection(deltaTime);
         UpdateUIText();
     }
 
-    void OnGUI()
+    private void UpdateLinearMotion(float deltaTime)
     {
-        GUIStyle style = new GUIStyle();
-        style.fontSize = 10;
-        style.normal.textColor = Color.black;
+        // Calculate raw acceleration
+        Vector3 currentPosition = transform.position;
+        Vector3 currentVelocity = (currentPosition - lastPosition) / deltaTime;
+        Vector3 rawAcceleration = (currentVelocity - lastVelocity) / deltaTime;
 
-        // Define some spacing
-        float padding = 400f;
-        float labelHeight = 20f;
-        float labelWidth = Mathf.Min(10f, Screen.width - 2 * padding);  // Max 500 or whatever fits
+        // Add simulated sensor noise
+        rawAcceleration += Random.insideUnitSphere * accelerometerNoise;
 
-        float x = Screen.width - labelWidth - padding;
-        float y = padding/2;
+        // Apply low-pass filter
+        filteredAcceleration = Vector3.Lerp(filteredAcceleration, rawAcceleration, lowPassFilterFactor);
 
-        GUI.Label(new Rect(x, y, labelWidth, labelHeight), $"Beschleunigung: {linearAcceleration:F2}", style);
-        y += labelHeight;
+        // Remove gravity effect
+        LinearAcceleration = filteredAcceleration + gravityVector;
 
-        GUI.Label(new Rect(x, y, labelWidth, labelHeight), $"Lage: {transform.rotation:F2}", style);
+        // Update velocity with filtered acceleration
+        Velocity = Vector3.Lerp(lastVelocity, currentVelocity, lowPassFilterFactor);
+
+        // Store values for next frame
+        lastPosition = currentPosition;
+        lastVelocity = Velocity;
+    }
+
+    private void UpdateAngularMotion(float deltaTime)
+    {
+        // Calculate raw angular velocity
+        Quaternion deltaRotation = transform.rotation * Quaternion.Inverse(lastRotation);
+        deltaRotation.ToAngleAxis(out float angle, out Vector3 axis);
+
+        if (angle > 180f) angle -= 360f; // Handle wrapping
+        Vector3 rawAngularVelocity = axis.normalized * angle / deltaTime;
+
+        // Add simulated gyro noise
+        rawAngularVelocity += Random.insideUnitSphere * gyroNoise;
+
+        // Apply low-pass filter
+        filteredAngularVelocity = Vector3.Lerp(filteredAngularVelocity, rawAngularVelocity, lowPassFilterFactor);
+        AngularVelocity = filteredAngularVelocity;
+
+        // Update orientation
+        Quaternion deltaOrient = Quaternion.AngleAxis(AngularVelocity.magnitude * deltaTime, AngularVelocity.normalized);
+        Orientation *= deltaOrient;
+
+        lastRotation = transform.rotation;
+    }
+
+    private void ApplyDriftCorrection(float deltaTime)
+    {
+        // Correct velocity drift
+        if (Velocity.magnitude < 0.01f)
+        {
+            Velocity = Vector3.Lerp(Velocity, Vector3.zero, driftCorrectionStrength);
+        }
+
+        // Correct orientation drift by slightly pulling towards the true rotation
+        Orientation = Quaternion.Slerp(Orientation, transform.rotation, driftCorrectionStrength * deltaTime);
     }
 
     private void UpdateUIText()
     {
         if (accelerationText != null)
-            accelerationText.text = $"Acceleration: {linearAcceleration:F2}";
+            accelerationText.text = $"Acc: {LinearAcceleration:F2} m/s²\nVel: {Velocity:F2} m/s";
 
         if (rotationText != null)
-            rotationText.text = $"Rotation: {angularVelocity:F2}";
+            rotationText.text = $"Angular Vel: {AngularVelocity:F2}°/s\nOrientation: {Orientation.eulerAngles:F1}°";
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!isInitialized) return;
+
+        // Draw acceleration vector
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position, transform.position + LinearAcceleration);
+
+        // Draw velocity vector
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(transform.position, transform.position + Velocity);
+
+        // Draw orientation
+        Gizmos.color = Color.green;
+        Vector3 forward = transform.position + Orientation * Vector3.forward;
+        Gizmos.DrawLine(transform.position, forward);
     }
 }
