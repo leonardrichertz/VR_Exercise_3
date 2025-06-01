@@ -1,24 +1,23 @@
 VR Übung 3 - Tracking
 
-Ein Unity-Projekt, das ein VR Head-Mounted Display (HMD) Tracking-System implementiert, welches Daten von Trägheitssensoren (IMU) mit optischem Marker-basiertem Kamera-Tracking kombiniert.
+Es wurde ein (HMD) Tracking-System implementiert, welches Daten von Trägheitssensoren (IMU) mit optischem Marker-basiertem Kamera-Tracking kombiniert.
 
-Die APK befindet sich in der Main-Branch.
+Die APK sowie der Code befinden sich im Main-Branch.
 
 Beide Ausgabeteile wurden in der Szene „Aufgabe_A” gelöst.
 
 Überblick
 
-Dieses Projekt demonstriert Sensor-Fusion-Techniken, die häufig in VR-Systemen verwendet werden, bei denen mehrere Tracking-Technologien kombiniert werden, um präzises Head-Tracking zu gewährleisten (auch wenn einzelne Sensoren Einschränkungen haben).
+Dieses Projekt demonstriert Sensor-Fusion-Techniken, die häufig in VR-Systemen verwendet werden, bei denen mehrere Tracking-Technologien kombiniert werden, um präzises Tracking zu gewährleisten (auch wenn einzelne Sensoren Einschränkungen haben).
 
-In der interaktiven Umgebung befinden sich 4 Wände in unterschiedlichen Höhen und Lagen, hinter denen man sich vor den Kameras verstecken kann. Die blaue Wand kann man mithilfe der beiden kleinen Würfel in rot und grün in der Höhe verstellen. Dabei wächst die Höhe der Wand, wenn man mit einem der beiden Controller den grünen Würfel berührt. Analog sinkt die Wandhöhe, wenn man den roten Würfel mit einem der Controller berührt.
-
+In der interaktiven Umgebung befinden sich 4 Wände in unterschiedlichen Höhen und Lagen, hinter denen man sich vor den Kameras verstecken kann. 
 
 Hauptfunktionen
 
 - IMU-Simulation: Beschleunigungs- und Gyroskop-Simulation mit Rauschen und Drift
 - Optisches Tracking: Kamerabasierte Tracking-Systeme mit Sichtfeld- und Sichtlinien-Validierung
 - Sensor-Fusion: Kombination von IMU- und optischen Daten für Tracking
-(- Echtzeit-Visualisierung: Live-Anzeige von Tracking-Daten und Systemstatus) - ausgenommen
+(- Echtzeit-Visualisierung: Live-Anzeige von Tracking-Daten und Systemstatus) - Die Datenvisualisierung als Art Head-Up Display wurde aus Usability Gründen ausgenommen.
 
 
 Komponenten
@@ -94,7 +93,7 @@ Haupt-Tracking-System, das IMU- und optische Daten kombiniert.
 - Behandelt parallele/nahezu parallele Strahlen elegant
 
 
-MathsHelpers
+MathsHelpers - wird nicht mehr für die Simulation verwendet
 
 Hilfsklasse mit geometrischen Berechnungsfunktionen.
 
