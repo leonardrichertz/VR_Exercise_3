@@ -9,15 +9,27 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
     [SerializeField] private float horizontalFOV = 60f;  // Horizontal field of view in degrees
     [SerializeField] private float verticalFOV = 45f;    // Vertical field of view in degrees
     [SerializeField] private float maxTrackingDistance = 10f;  // Maximum distance for reliable tracking
-    [SerializeField] private TextMeshProUGUI angleText;
+
+    [SerializeField] private Color trackingColor = Color.green;
+    [SerializeField] private Color noTrackingColor = Color.red;
+    [SerializeField] private Color outOfRangeColor = Color.yellow;
+    [SerializeField] private Color fovBlockedColor = Color.gray;
 
     public Vector2? AnglestoHMD { get; private set; }  // x: horizontal angle, y: vertical angle
     public bool HasValidTracking => AnglestoHMD.HasValue;
     public Vector3 Position => transform.position;
     public Vector3 Forward => transform.forward;
 
+    private Renderer _renderer;
+
+
     void Update()
     {
+        _renderer = GetComponent<Renderer>();
+        if (_renderer == null)
+        {
+            Debug.LogWarning("No Renderer found on OpticalMarkerBasedCamera GameObject.");
+        }
         UpdateAnglesToHMD();
     }
 
@@ -26,7 +38,7 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         if (hmdTransform == null || !HasLineOfSight())
         {
             AnglestoHMD = null;
-            UpdateUIText("No tracking");
+            UpdateVisualColor(noTrackingColor);
             return;
         }
 
@@ -36,7 +48,7 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         if (distance > maxTrackingDistance)
         {
             AnglestoHMD = null;
-            UpdateUIText("Target too far");
+            UpdateVisualColor(outOfRangeColor);
             return;
         }
 
@@ -51,12 +63,12 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         if (Mathf.Abs(horizontalAngle) > horizontalFOV / 2 || Mathf.Abs(verticalAngle) > verticalFOV / 2)
         {
             AnglestoHMD = null;
-            UpdateUIText("Outside FOV");
+            UpdateVisualColor(fovBlockedColor);
             return;
         }
 
         AnglestoHMD = new Vector2(horizontalAngle, verticalAngle);
-        UpdateUIText($"H: {horizontalAngle:F1}° V: {verticalAngle:F1}°");
+        UpdateVisualColor(trackingColor);
     }
 
     private bool HasLineOfSight()
@@ -93,11 +105,11 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + forward - up);
     }
 
-    private void UpdateUIText(string text)
+    private void UpdateVisualColor(Color color)
     {
-        if (angleText != null)
+        if (_renderer != null)
         {
-            angleText.text = text;
+            _renderer.material.color = color;
         }
     }
 }
