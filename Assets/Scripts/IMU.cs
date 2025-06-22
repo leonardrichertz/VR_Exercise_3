@@ -111,14 +111,20 @@ public class IMU : MonoBehaviour
 
     private void ApplyDriftCorrection(float deltaTime)
     {
-        // Correct velocity drift
+        // ENTFERNEN: Diese Zeile macht keinen Sinn für eine echte IMU
+        // Orientation = Quaternion.Slerp(Orientation, transform.rotation, driftCorrectionStrength * deltaTime);
+        
+        // Stattdessen: Nur Velocity-Drift korrigieren
         if (Velocity.magnitude < 0.01f)
         {
             Velocity = Vector3.Lerp(Velocity, Vector3.zero, driftCorrectionStrength);
         }
-
-        // Correct orientation drift by slightly pulling towards the true rotation
-        Orientation = Quaternion.Slerp(Orientation, transform.rotation, driftCorrectionStrength * deltaTime);
+        
+        // Optional: Gyro-Drift korrigieren (langsam zu Null)
+        if (AngularVelocity.magnitude < 0.1f)
+        {
+            AngularVelocity = Vector3.Lerp(AngularVelocity, Vector3.zero, driftCorrectionStrength * 0.1f);
+        }
     }
 
     private void UpdateUIText()

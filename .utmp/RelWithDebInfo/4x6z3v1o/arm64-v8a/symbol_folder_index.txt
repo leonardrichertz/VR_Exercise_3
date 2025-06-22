@@ -1,0 +1,1 @@
+C:\Users\Pavlo Pustovoit\Uni\VR\VR_Exercise_3\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\4x6z3v1o\obj\arm64-v8a

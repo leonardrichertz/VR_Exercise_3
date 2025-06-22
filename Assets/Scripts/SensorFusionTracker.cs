@@ -61,11 +61,21 @@ public class SensorFusionTracker : MonoBehaviour
                 continue;
 
             Vector2 angles = cam.AnglestoHMD.Value;
-            Vector3 direction = Quaternion.Euler(-angles.y, angles.x, 0) * Vector3.forward;
+            
+            // KORREKTUR: Richtung korrekt berechnen
+            Vector3 direction = cam.Forward; // Start mit Kamera-Forward
+            
+            // Horizontale Rotation um Y-Achse
+            direction = Quaternion.AngleAxis(angles.x, Vector3.up) * direction;
+            
+            // Vertikale Rotation um die lokale Right-Achse der Kamera
+            Vector3 rightAxis = Vector3.Cross(Vector3.up, direction).normalized;
+            direction = Quaternion.AngleAxis(angles.y, rightAxis) * direction;
+            
             rays.Add((cam.Position, direction));
         }
 
-        // Now use all rays to find closest intersection points
+        
         if (rays.Count < 2)
             return (trackedHMDVisual.position, trackedHMDVisual.rotation);
 
@@ -76,23 +86,19 @@ public class SensorFusionTracker : MonoBehaviour
         {
             for (int j = i + 1; j < rays.Count; j++)
             {
-                Vector3 point = GetLineIntersection(rays[i].origin, rays[i].direction, rays[j].origin, rays[j].direction);
+                Vector3 point = MathsHelpers.GetLineIntersection(rays[i].origin, rays[i].direction, rays[j].origin, rays[j].direction);
                 totalIntersection += point;
                 pairCount++;
             }
         }
 
         Vector3 estimatedPos = pairCount > 0 ? totalIntersection / pairCount : trackedHMDVisual.position;
-
-        // Calculate rotation based on movement direction
-        Vector3 movement = estimatedPos - EstimatedPosition;
-        Quaternion estimatedRot = movement.magnitude > 0.01f ?
-            Quaternion.Lerp(EstimatedRotation, Quaternion.LookRotation(movement), 0.5f) :
-            EstimatedRotation;
+        
+        // Rotation sollte nicht aus Bewegung abgeleitet werden - das ist falsch
+        Quaternion estimatedRot = EstimatedRotation; // Behalten Sie die letzte bekannte Rotation
 
         return (estimatedPos, estimatedRot);
     }
-
     private Vector3 GetLineIntersection(Vector3 point1, Vector3 direction1, Vector3 point2, Vector3 direction2)
     {
         Vector3 cross = Vector3.Cross(direction1, direction2);

@@ -32,44 +32,47 @@ public class OpticalMarkerBasedCamera : MonoBehaviour
         }
         UpdateAnglesToHMD();
     }
+      private void UpdateAnglesToHMD()
+      {
+          if (hmdTransform == null || !HasLineOfSight())
+          {
+              AnglestoHMD = null;
+              UpdateVisualColor(noTrackingColor);
+              return;
+          }
 
-    private void UpdateAnglesToHMD()
-    {
-        if (hmdTransform == null || !HasLineOfSight())
-        {
-            AnglestoHMD = null;
-            UpdateVisualColor(noTrackingColor);
-            return;
-        }
+          Vector3 toHMD = hmdTransform.position - transform.position;
+          float distance = toHMD.magnitude;
 
-        Vector3 toHMD = hmdTransform.position - transform.position;
-        float distance = toHMD.magnitude;
+          if (distance > maxTrackingDistance)
+          {
+              AnglestoHMD = null;
+              UpdateVisualColor(outOfRangeColor);
+              return;
+          }
 
-        if (distance > maxTrackingDistance)
-        {
-            AnglestoHMD = null;
-            UpdateVisualColor(outOfRangeColor);
-            return;
-        }
+          // KORREKTUR: Winkel relativ zur Kamera-Forward-Richtung berechnen
+          Vector3 cameraForward = transform.forward;
+          Vector3 toHMDNormalized = toHMD.normalized;
+        
+          // Horizontaler Winkel (um Y-Achse)
+          Vector3 cameraForwardXZ = new Vector3(cameraForward.x, 0, cameraForward.z).normalized;
+          Vector3 toHMDXZ = new Vector3(toHMDNormalized.x, 0, toHMDNormalized.z).normalized;
+          float horizontalAngle = Vector3.SignedAngle(cameraForwardXZ, toHMDXZ, Vector3.up);
+        
+          // Vertikaler Winkel
+          float verticalAngle = Mathf.Asin(toHMDNormalized.y) * Mathf.Rad2Deg;
 
-        // Project the vector onto the camera's local coordinate system
-        Vector3 localToHMD = transform.InverseTransformDirection(toHMD);
+          // FOV-Check
+          if (Mathf.Abs(horizontalAngle) > horizontalFOV / 2 || Mathf.Abs(verticalAngle) > verticalFOV / 2)
+          {
+              AnglestoHMD = null;
+              UpdateVisualColor(fovBlockedColor);
+              return;
+          }
 
-        // Calculate horizontal and vertical angles
-        float horizontalAngle = Mathf.Atan2(localToHMD.x, localToHMD.z) * Mathf.Rad2Deg;
-        float verticalAngle = Mathf.Atan2(localToHMD.y, localToHMD.z) * Mathf.Rad2Deg;
-
-        // Check if within FOV
-        if (Mathf.Abs(horizontalAngle) > horizontalFOV / 2 || Mathf.Abs(verticalAngle) > verticalFOV / 2)
-        {
-            AnglestoHMD = null;
-            UpdateVisualColor(fovBlockedColor);
-            return;
-        }
-
-        AnglestoHMD = new Vector2(horizontalAngle, verticalAngle);
-        UpdateVisualColor(trackingColor);
-    }
+          AnglestoHMD = new Vector2(horizontalAngle, verticalAngle);
+          UpdateVisualColor(trackingColor);    }
 
     private bool HasLineOfSight()
     {
